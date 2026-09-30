@@ -33,6 +33,13 @@ Chosen deliberately to solve gaps a real instructor would hit, not to add surfac
 
 Small related cleanups made along the way: consolidated the "which grade band does this mark fall into" logic (previously duplicated three times — grade-summary counts, CSV export, and now the results table) into a single `gradeFor()` helper, and fixed a stray-space inconsistency in the exported CSV header.
 
+**Visual design pass:** the instruction PDF explicitly lists "UI / Visual Design" as an improvable area in Stage 2, so beyond the four enhancements above, the interface got a polish pass on top of the original purple/indigo BITS Pilani theme:
+- Color-coded grades throughout — each grade card now has a colored accent border, and the same color scale is reused for the grade-summary pills and the results-table badges, so a grade's color means the same thing everywhere on the page.
+- Empty states for the Analytics and Grade Configuration panels (e.g. "Upload a marks file and select a course to see analytics here") instead of blank boxes before a file is uploaded.
+- Section labels ("Analytics & Distribution", "Grade Configuration") for scannability, a small header icon/wordmark, and a favicon.
+- Smoother, more consistent interaction states: branded focus rings on inputs/selects/buttons, hover/active feedback on buttons, gentle panel elevation on hover, and icons on the Reset/Download buttons.
+- Fixed a real spacing bug while doing this: the Min/Max rows inside each grade card had **zero** gap between them (confirmed by measuring `getBoundingClientRect()` — they were literally touching), now a proper flex row with consistent spacing.
+
 ## Stage 3 — Deployment
 
 Live on GitHub Pages: **https://kishansingh47.github.io/bits-codeforge-grading-console/**

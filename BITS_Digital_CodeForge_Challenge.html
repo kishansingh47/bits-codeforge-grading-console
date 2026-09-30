@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>BITS Pilani Digital – Advanced Grading Console</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%235b3cc4'/%3E%3Ctext x='12' y='17' font-size='13' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
@@ -71,6 +72,9 @@ input,select{
 }
 
 button{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
   padding:10px 16px;
   border:none;
   border-radius:6px;
@@ -78,8 +82,9 @@ button{
   color:#fff;
   font-weight:500;
   cursor:pointer;
-  transition:transform .2s ease, opacity .2s ease;
+  transition:transform .2s ease, opacity .2s ease, filter .15s ease, background-color .15s ease;
 }
+.btn-icon{flex-shrink:0;}
 button.secondary{
   background:#e5e7eb;
   color:#111827;
@@ -137,6 +142,7 @@ button:disabled{
 }
 .grade{
   border:1px solid #e5e7eb;
+  border-left-width:4px;
   border-radius:8px;
   padding:8px;
   background:#fafafa;
@@ -320,6 +326,99 @@ button.enabled{
     grid-template-columns:1fr;
   }
 }
+
+/* ===== VISUAL DESIGN PASS (STAGE 2) ===== */
+
+/* Header: icon + tighter alignment */
+header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header-icon{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#5b3cc4,#8b5cf6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+/* Section labels for scannability */
+.panel-eyebrow{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:#8b7fc7;
+  margin-bottom:8px;
+}
+
+/* Consistent, branded focus states (also improves keyboard accessibility) */
+input:focus, select:focus, button:focus-visible, #resultsTable th:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(91,60,196,.25);
+}
+input, select{
+  transition:box-shadow .15s ease, border-color .15s ease;
+}
+input:hover, select:hover{
+  border-color:#a5a0c9;
+}
+
+/* Smoother button feedback */
+button:not(:disabled):hover{filter:brightness(1.07);}
+button:not(:disabled):active{transform:scale(.96);}
+button.secondary:not(:disabled):hover{background:#d8dbe0;}
+
+/* Gentle panel elevation on hover */
+.panel{transition:box-shadow .25s ease;}
+.panel:hover{box-shadow:0 8px 22px rgba(76,29,149,.10);}
+
+/* Grade cards: hover affordance to match the rest of the UI */
+.grade:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);}
+
+/* Status text reads as soft banners instead of bare colored text */
+.notice:not(:empty){
+  background:#ecfdf5;
+  border:1px solid #a7f3d0;
+  padding:8px 12px;
+  border-radius:8px;
+}
+.error:not(:empty){
+  background:#fef2f2;
+  border:1px solid #fecaca;
+  padding:6px 10px;
+  border-radius:6px;
+}
+
+/* Empty states (shown before a file/course makes a panel meaningful) */
+.empty-state{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap:6px;
+  padding:32px 12px;
+  color:#9691b8;
+  font-size:13px;
+}
+.empty-state[hidden]{
+  display:none;
+}
+.empty-state .empty-icon{
+  font-size:28px;
+  opacity:.6;
+}
+
+/* Results table: branded scrollbar + smoother row hover */
+.table-scroll::-webkit-scrollbar{width:8px;height:8px;}
+.table-scroll::-webkit-scrollbar-thumb{background:#c4b5fd;border-radius:999px;}
+.table-scroll::-webkit-scrollbar-track{background:transparent;}
+#resultsTable tbody tr{transition:background-color .15s ease;}
 </style>
 </head>
 
@@ -327,8 +426,17 @@ button.enabled{
 <div class="container">
 
 <header>
-  <h1>BITS Pilani Digital</h1>
-  <h2>Advanced Grading Console</h2>
+  <div class="header-icon" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2 2 7l10 5 10-5-10-5Z"/>
+      <path d="M2 17l10 5 10-5"/>
+      <path d="M2 12l10 5 10-5"/>
+    </svg>
+  </div>
+  <div>
+    <h1>BITS Pilani Digital</h1>
+    <h2>Advanced Grading Console</h2>
+  </div>
 </header>
 
 <div class="controls">
@@ -365,26 +473,44 @@ button.enabled{
 <div class="workspace">
   <!-- ANALYTICS -->
   <div class="panel">
-    <canvas id="hist" width="380" height="240"></canvas>
-
-    <div class="stats">
-      <div class="stat">Max<br><b id="max"></b></div>
-      <div class="stat">Min<br><b id="min"></b></div>
-      <div class="stat">Avg<br><b id="avg"></b></div>
-      <div class="stat">Median<br><b id="med"></b></div>
+    <div class="panel-eyebrow">Analytics &amp; Distribution</div>
+    <div class="empty-state" id="analyticsEmpty">
+      <div class="empty-icon" aria-hidden="true">📊</div>
+      <div>Upload a marks file and select a course to see analytics here.</div>
     </div>
+    <div id="analyticsContent" hidden>
+      <canvas id="hist" width="380" height="240"></canvas>
 
-    <div class="grade-summary" id="gradeSummary"></div>
+      <div class="stats">
+        <div class="stat">Max<br><b id="max"></b></div>
+        <div class="stat">Min<br><b id="min"></b></div>
+        <div class="stat">Avg<br><b id="avg"></b></div>
+        <div class="stat">Median<br><b id="med"></b></div>
+      </div>
+
+      <div class="grade-summary" id="gradeSummary"></div>
+    </div>
   </div>
 
   <!-- GRADING -->
   <div class="panel">
+    <div class="panel-eyebrow">Grade Configuration</div>
+    <div class="empty-state" id="gradingEmpty">
+      <div class="empty-icon" aria-hidden="true">🧮</div>
+      <div>Select a course to configure grade ranges.</div>
+    </div>
     <div class="grade-grid" id="grades"></div>
     <div class="error" id="rangeError" role="alert" aria-live="assertive"></div>
 
     <div class="actions">
-      <button class="secondary" id="resetRanges">Reset Range</button>
-      <button id="download" disabled>Finalize & Download</button>
+      <button class="secondary" id="resetRanges">
+        <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        Reset Range
+      </button>
+      <button id="download" disabled>
+        <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Finalize &amp; Download
+      </button>
     </div>
 
     <div class="timer-wrapper">
@@ -466,6 +592,18 @@ const DEFAULTS={
   "A":[80,100],"A-":[70,79],"B":[60,69],"B-":[50,59],
   "C":[40,49],"C-":[30,39],"D":[20,29],"E":[0,19]
 };
+
+/* Grade color coding (Stage 2 visual design pass) — reused across grade
+   cards, the grade-summary pills, and the results table. */
+const GRADE_FG={A:"#15803d","A-":"#16a34a",B:"#0369a1","B-":"#0284c7",C:"#b45309","C-":"#d97706",D:"#c2410c",E:"#b91c1c"};
+const GRADE_BG={A:"#dcfce7","A-":"#dcfce7",B:"#e0f2fe","B-":"#e0f2fe",C:"#fef3c7","C-":"#fef3c7",D:"#ffedd5",E:"#fee2e2"};
+
+function toggleEmptyStates(){
+  const hasCourse=!!course.value;
+  analyticsEmpty.hidden=hasCourse;
+  analyticsContent.hidden=!hasCourse;
+  gradingEmpty.hidden=hasCourse;
+}
 
 let data=[];
 let previousSummary={};
@@ -559,6 +697,7 @@ file.onchange=e=>{
     previousSummary={};
     resultsPanel.hidden=true;
     resultsBody.innerHTML="";
+    toggleEmptyStates();
     computeStats();
     drawHistogram();
     gradeSummary.innerHTML="";
@@ -572,8 +711,9 @@ course.onchange=()=>{
     course.value="";
     return;
   }
-  welcome.innerText=`Welcome ${instructor.value.toUpperCase()}. Please review and finalize grading.`;
+  welcome.innerText=`👋 Welcome ${instructor.value.toUpperCase()}. Please review and finalize grading.`;
   previousSummary={};
+  toggleEmptyStates();
   buildGradeUI();
   updateAll();
 };
@@ -590,6 +730,7 @@ function buildGradeUI(){
   GRADES.forEach((g,idx)=>{
     const card=document.createElement("div");
     card.className="grade";
+    card.style.borderLeftColor=GRADE_FG[g];
 
     const minSel=document.createElement("select");
     const maxSel=document.createElement("select");
@@ -652,6 +793,7 @@ function validateRanges(){
 }
 
 function updateAll(){
+  toggleEmptyStates();
   const err=validateRanges();
   rangeError.innerText=err;
   download.disabled=!!err;
@@ -691,7 +833,8 @@ function renderResultsTable(){
   resultsBody.innerHTML="";
   filtered.forEach(r=>{
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${r.id}</td><td>${r.marks}</td><td><span class="grade-pill">${r.grade}</span></td>`;
+    const bg=GRADE_BG[r.grade]||"#ede9fe", fg=GRADE_FG[r.grade]||"#5b3cc4";
+    tr.innerHTML=`<td>${r.id}</td><td>${r.marks}</td><td><span class="grade-pill" style="background:${bg};color:${fg}">${r.grade}</span></td>`;
     resultsBody.appendChild(tr);
   });
 
@@ -802,6 +945,8 @@ function computeGradeSummary(){
   GRADES.forEach(g=>{
     const span=document.createElement("span");
     span.textContent=`${g}: ${counts[g]}`;
+    span.style.background=GRADE_BG[g];
+    span.style.color=GRADE_FG[g];
     if(previousSummary[g]!==undefined && previousSummary[g]!==counts[g]){
       span.classList.add("pulse");
       setTimeout(()=>span.classList.remove("pulse"),30);
@@ -832,13 +977,13 @@ download.onclick=()=>{
 
   if(finalizeCount === 1){
     thankyou.innerText =
-      `You completed grading in ${minT} min ${secT} sec in your first attempt.`;
+      `🎉 You completed grading in ${minT} min ${secT} sec in your first attempt.`;
   } else {
     const suffix = finalizeCount === 2 ? "second"
                   : finalizeCount === 3 ? "third"
                   : finalizeCount + "th";
     thankyou.innerText =
-      `You took a total of ${minT} min ${secT} sec to complete the grading in your ${suffix} attempt.`;
+      `🎉 You took a total of ${minT} min ${secT} sec to complete the grading in your ${suffix} attempt.`;
   }
 };
 </script>
