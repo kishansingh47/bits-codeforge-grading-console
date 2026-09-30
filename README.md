@@ -29,4 +29,6 @@ Small related cleanups made along the way: consolidated the "which grade band do
 
 ## Stage 3 — Deployment
 
-_See deployment link below (added after publishing)._
+Live on GitHub Pages: **https://kishansingh47.github.io/bits-codeforge-grading-console/**
+
+Repository: **https://github.com/kishansingh47/bits-codeforge-grading-console**
