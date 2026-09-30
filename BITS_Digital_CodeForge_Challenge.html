@@ -351,11 +351,22 @@ button.enabled{
 
 /* ===== VISUAL DESIGN PASS (STAGE 2) ===== */
 
-/* Header: icon + tighter alignment */
-header{
+/* Header: icon + tighter alignment, clickable back to the home/start state */
+.home-link{
   display:flex;
   align-items:center;
   gap:12px;
+  text-decoration:none;
+  color:inherit;
+  cursor:pointer;
+  border-radius:8px;
+}
+.home-link:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(91,60,196,.25);
+}
+.home-link:hover h1{
+  color:#4c2fa0;
 }
 .header-icon{
   width:38px;
@@ -466,17 +477,19 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
 <div class="container">
 
 <header>
-  <div class="header-icon" aria-hidden="true">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2 2 7l10 5 10-5-10-5Z"/>
-      <path d="M2 17l10 5 10-5"/>
-      <path d="M2 12l10 5 10-5"/>
-    </svg>
-  </div>
-  <div>
-    <h1>BITS Pilani Digital</h1>
-    <h2>Advanced Grading Console</h2>
-  </div>
+  <a class="home-link" id="homeLink" href="BITS_Digital_CodeForge_Challenge.html" aria-label="BITS Pilani Digital Advanced Grading Console — return to home">
+    <div class="header-icon" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 2 7l10 5 10-5-10-5Z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div>
+      <h1>BITS Pilani Digital</h1>
+      <h2>Advanced Grading Console</h2>
+    </div>
+  </a>
 </header>
 
 <div class="controls">
@@ -603,6 +616,15 @@ function toggleEmptyStates(){
   gradingEmpty.hidden=hasCourse;
   gradingActions.hidden=!hasCourse;
 }
+
+homeLink.onclick=e=>{
+  if(course.value){
+    const proceed=confirm("Return to the home screen? This will clear your current upload and grading progress.\nContinue?");
+    if(!proceed){
+      e.preventDefault();
+    }
+  }
+};
 
 let data=[];
 let previousSummary={};
