@@ -137,7 +137,7 @@ button:disabled{
 
 .grade-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  grid-template-columns:repeat(2,1fr);
   gap:10px;
 }
 .grade{
@@ -166,12 +166,13 @@ button:disabled{
   margin-top:8px;
 }
 .notice{
-  margin-top:10px;
+  margin:10px 0;
   font-size:13px;
   color:#065f46;
 }
 .actions{
   display:flex;
+  justify-content:space-between;
   gap:10px;
   margin-top:10px;
   align-items:center;
@@ -237,7 +238,7 @@ button.enabled{
 
 /* Upload validation warnings */
 .warnings{
-  margin-top:8px;
+  margin:8px 0;
   padding:8px 10px;
   border-radius:6px;
   font-size:12px;
@@ -381,6 +382,9 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
 .grade:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);}
 
 /* Status text reads as soft banners instead of bare colored text */
+.notice:empty{
+  display:none;
+}
 .notice:not(:empty){
   background:#ecfdf5;
   border:1px solid #a7f3d0;
