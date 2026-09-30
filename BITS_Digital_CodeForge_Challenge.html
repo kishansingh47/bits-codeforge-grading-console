@@ -139,27 +139,52 @@ button:disabled{
 .grade-grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
-  gap:10px;
+  gap:8px;
 }
 .grade{
+  display:flex;
+  align-items:center;
+  gap:8px;
   border:1px solid #e5e7eb;
   border-left-width:4px;
   border-radius:8px;
-  padding:8px;
+  padding:6px 8px;
   background:#fafafa;
   transition:transform .25s ease, box-shadow .25s ease;
 }
-.min,.max{
+.grade strong{
+  font-size:12px;
+  width:22px;
+  flex-shrink:0;
+}
+.range-row{
   display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
+  flex:1;
+  gap:6px;
+  min-width:0;
 }
-.max{
-  margin-top:6px;
+.range-field{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  flex:1;
+  min-width:0;
 }
-.min select{background:#fff7ed}
-.max select{background:#eff6ff}
+.range-field label{
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  color:#9ca3af;
+}
+.range-field select{
+  width:100%;
+  padding:3px 4px;
+  font-size:12px;
+  border-radius:5px;
+}
+.min-field select{background:#fff7ed}
+.max-field select{background:#eff6ff}
 
 .error{
   color:#b91c1c;
@@ -190,31 +215,6 @@ button.enabled{
 .grade-summary span.pulse{
   transform:scale(1.08);
   background:#ddd6fe;
-}
-
-/* ===== TIMER CLOCK ===== */
-.timer-wrapper{
-  margin-top:14px;
-  display:flex;
-  justify-content:center;
-}
-.timer-clock{
-  width:90px;
-  height:90px;
-  position:relative;
-}
-.timer-clock svg{
-  transform:rotate(-90deg);
-}
-.timer-text{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-  font-size:14px;
-  color:#5b3cc4;
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -317,6 +317,11 @@ button.enabled{
 }
 
 /* Responsiveness */
+#hist{
+  max-width:100%;
+  height:auto;
+  display:block;
+}
 @media (max-width:760px){
   .controls{
     grid-template-columns:1fr;
@@ -326,6 +331,16 @@ button.enabled{
   }
   .workspace{
     grid-template-columns:1fr;
+  }
+  .grade-grid{
+    grid-template-columns:1fr;
+  }
+  .actions{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .actions button{
+    justify-content:center;
   }
 }
 
@@ -519,20 +534,6 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
         </button>
       </div>
 
-      <div class="timer-wrapper">
-        <div class="timer-clock">
-          <svg width="90" height="90">
-            <circle cx="45" cy="45" r="40" stroke="#ede9fe" stroke-width="6" fill="none"/>
-            <circle id="timerArc" cx="45" cy="45" r="40"
-              stroke="#5b3cc4" stroke-width="6" fill="none"
-              stroke-linecap="round"
-              stroke-dasharray="251"
-              stroke-dashoffset="251"/>
-          </svg>
-          <div class="timer-text" id="timerText">00:00</div>
-        </div>
-      </div>
-
       <div id="thankyou" class="notice" role="status" aria-live="polite"></div>
     </div>
   </div>
@@ -562,38 +563,6 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
 </div>
 
 <script>
-/* ===== TIMER (LOCKED) ===== */
-const gradingStartTime = Date.now();
-let timerInterval=null;
-const circumference = 2 * Math.PI * 40;
-
-function tickTimer(){
-  const arc=document.getElementById("timerArc");
-  const text=document.getElementById("timerText");
-
-  const elapsed = Date.now() - gradingStartTime;
-  const min = Math.floor(elapsed/60000);
-  const sec = Math.floor((elapsed%60000)/1000);
-
-  text.innerText =
-    String(min).padStart(2,"0")+":"+String(sec).padStart(2,"0");
-
-  const progress = Math.min(elapsed/3600000,1);
-  arc.style.strokeDashoffset =
-    circumference * (1-progress);
-}
-
-function startTimer(){
-  tickTimer();
-  timerInterval=setInterval(tickTimer,1000);
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-  startTimer();
-});
-
-/* ===== EVERYTHING BELOW IS LOCKED (VERBATIM) ===== */
-
 const GRADES=["A","A-","B","B-","C","C-","D","E"];
 const DEFAULTS={
   "A":[80,100],"A-":[70,79],"B":[60,69],"B-":[50,59],
@@ -764,14 +733,14 @@ function buildGradeUI(){
       updateAll();
     };
 
-    card.innerHTML=`<strong>${g}</strong><div class="min">Min</div>`;
-    card.querySelector(".min").appendChild(minSel);
-
-    const maxDiv=document.createElement("div");
-    maxDiv.className="max";
-    maxDiv.innerText="Max";
-    maxDiv.appendChild(maxSel);
-    card.appendChild(maxDiv);
+    card.innerHTML=`
+      <strong>${g}</strong>
+      <div class="range-row">
+        <div class="range-field min-field"><label>Min</label></div>
+        <div class="range-field max-field"><label>Max</label></div>
+      </div>`;
+    card.querySelector(".min-field").appendChild(minSel);
+    card.querySelector(".max-field").appendChild(maxSel);
 
     grades.appendChild(card);
   });
@@ -967,11 +936,6 @@ function computeGradeSummary(){
 
 download.onclick=()=>{
   finalizeCount++;
-  clearInterval(timerInterval);
-
-  const elapsed = Date.now() - gradingStartTime;
-  const minT=Math.floor(elapsed/60000);
-  const secT=Math.floor((elapsed%60000)/1000);
 
   let csv=`Instructor,${instructor.value}\nCourse,${course.value}\n\nBITS ID,Total Marks,Grade\n`;
   data.filter(d=>d.Course===course.value).forEach(d=>{
@@ -985,14 +949,12 @@ download.onclick=()=>{
   a.click();
 
   if(finalizeCount === 1){
-    thankyou.innerText =
-      `🎉 You completed grading in ${minT} min ${secT} sec in your first attempt.`;
+    thankyou.innerText = `🎉 Grades finalized and downloaded successfully.`;
   } else {
     const suffix = finalizeCount === 2 ? "second"
                   : finalizeCount === 3 ? "third"
                   : finalizeCount + "th";
-    thankyou.innerText =
-      `🎉 You took a total of ${minT} min ${secT} sec to complete the grading in your ${suffix} attempt.`;
+    thankyou.innerText = `🎉 Grades downloaded again (${suffix} attempt).`;
   }
 };
 </script>
