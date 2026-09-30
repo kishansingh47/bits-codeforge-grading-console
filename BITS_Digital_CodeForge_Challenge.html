@@ -7,7 +7,6 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-/* ===== BASE (LOCKED) ===== */
 body{
   margin:0;
   font-family:Segoe UI, Arial, sans-serif;
@@ -19,6 +18,13 @@ body{
   margin:auto;
   padding:16px;
 }
+/* a component's own display:flex/grid can otherwise outrank the
+   browser's default [hidden]{display:none} at equal specificity */
+[hidden]{
+  display:none !important;
+}
+
+/* ===== Header ===== */
 header{
   background:#ffffff;
   border-radius:10px;
@@ -37,8 +43,34 @@ header h2{
   font-weight:500;
   color:#5b3cc4;
 }
+.home-link{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+  color:inherit;
+  cursor:pointer;
+  border-radius:8px;
+}
+.home-link:hover h1{
+  color:#4c2fa0;
+}
+.home-link:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(91,60,196,.25);
+}
+.header-icon{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#5b3cc4,#8b5cf6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
 
-/* ===== CONTROLS ===== */
+/* ===== Form controls ===== */
 .controls{
   display:grid;
   grid-template-columns:1.2fr 1fr 1fr;
@@ -49,9 +81,20 @@ input,select{
   padding:8px 10px;
   border-radius:6px;
   border:1px solid #d1d5db;
+  transition:box-shadow .15s ease, border-color .15s ease;
 }
-
-/* ===== Subtle file guidance (world-class) ===== */
+input:hover,select:hover{
+  border-color:#a5a0c9;
+}
+input:focus,select:focus,button:focus-visible,#resultsTable th:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(91,60,196,.25);
+}
+/* the native search-input clear button is a UA-drawn control, so it
+   needs its own cursor rule instead of inheriting the input's caret */
+input[type=search]::-webkit-search-cancel-button{
+  cursor:pointer;
+}
 .file-guidance{
   margin-bottom:10px;
   padding:8px 10px;
@@ -70,6 +113,7 @@ input,select{
   line-height:1.5;
 }
 
+/* ===== Buttons ===== */
 button{
   display:inline-flex;
   align-items:center;
@@ -83,7 +127,9 @@ button{
   cursor:pointer;
   transition:transform .2s ease, opacity .2s ease, filter .15s ease, background-color .15s ease;
 }
-.btn-icon{flex-shrink:0;}
+.btn-icon{
+  flex-shrink:0;
+}
 button.secondary{
   background:#e5e7eb;
   color:#111827;
@@ -92,14 +138,23 @@ button:disabled{
   opacity:.4;
   cursor:not-allowed;
 }
+button:not(:disabled):hover{
+  filter:brightness(1.07);
+}
+button:not(:disabled):active{
+  transform:scale(.96);
+}
+button.secondary:not(:disabled):hover{
+  background:#d8dbe0;
+}
 
+/* ===== Panels ===== */
 .workspace{
   display:grid;
   grid-template-columns:420px 1fr;
   align-items:stretch;
   gap:14px;
 }
-
 .panel{
   display:flex;
   flex-direction:column;
@@ -107,8 +162,47 @@ button:disabled{
   border-radius:12px;
   padding:12px;
   box-shadow:0 4px 14px rgba(0,0,0,.08);
+  transition:box-shadow .25s ease;
+}
+.panel:hover{
+  box-shadow:0 8px 22px rgba(76,29,149,.10);
+}
+.panel-eyebrow{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:#8b7fc7;
+  margin-bottom:16px;
+  flex-shrink:0;
+}
+.empty-state{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap:6px;
+  flex:1;
+  padding:32px 12px;
+  color:#9691b8;
+  font-size:13px;
+}
+.empty-state .empty-icon{
+  display:flex;
+  opacity:.5;
+}
+/* centers a panel's real content within the stretched height instead
+   of leaving it top-anchored above dead space */
+#analyticsContent,#gradingContent{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:12px;
 }
 
+/* ===== Analytics panel ===== */
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -121,7 +215,12 @@ button:disabled{
   font-size:12px;
   text-align:center;
 }
-
+#hist{
+  max-width:100%;
+  height:auto;
+  display:block;
+  margin:0 auto;
+}
 .grade-summary{
   display:grid;
   grid-template-columns:repeat(4,auto);
@@ -137,6 +236,7 @@ button:disabled{
   transition:transform .25s ease, background-color .25s ease;
 }
 
+/* ===== Grade configuration ===== */
 .grade-grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -152,6 +252,9 @@ button:disabled{
   padding:6px 8px;
   background:#fafafa;
   transition:transform .25s ease, box-shadow .25s ease;
+}
+.grade:hover{
+  box-shadow:0 4px 14px rgba(0,0,0,.08);
 }
 .grade strong{
   font-size:12px;
@@ -186,19 +289,6 @@ button:disabled{
 }
 .min-field select{background:#fff7ed}
 .max-field select{background:#eff6ff}
-
-.error{
-  color:#b91c1c;
-  font-size:13px;
-}
-.error:empty{
-  display:none;
-}
-.notice{
-  margin:10px 0;
-  font-size:13px;
-  color:#065f46;
-}
 .actions{
   display:flex;
   justify-content:space-between;
@@ -207,7 +297,49 @@ button:disabled{
   align-items:center;
 }
 
-/* ===== ANIMATIONS (LOCKED) ===== */
+/* ===== Status messages ===== */
+.error{
+  color:#b91c1c;
+  font-size:13px;
+}
+.error:empty{
+  display:none;
+}
+.error:not(:empty){
+  background:#fef2f2;
+  border:1px solid #fecaca;
+  padding:6px 10px;
+  border-radius:6px;
+}
+.notice{
+  margin:10px 0;
+  font-size:13px;
+  color:#065f46;
+}
+.notice:empty{
+  display:none;
+}
+.notice:not(:empty){
+  background:#ecfdf5;
+  border:1px solid #a7f3d0;
+  padding:8px 12px;
+  border-radius:8px;
+}
+.warnings{
+  margin:8px 0;
+  padding:8px 10px;
+  border-radius:6px;
+  font-size:12px;
+  line-height:1.5;
+  background:#fffbeb;
+  color:#92400e;
+  border:1px solid #fde68a;
+}
+.warnings:empty{
+  display:none;
+}
+
+/* ===== Animation states ===== */
 .grade.lift{
   transform:translateY(-2px);
   box-shadow:0 8px 20px rgba(0,0,0,.12);
@@ -219,41 +351,12 @@ button.enabled{
   transform:scale(1.08);
   background:#ddd6fe;
 }
-
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important;}
-}
-@media (prefers-reduced-motion: reduce){
   .grade.lift{transform:translateY(-2px);}
 }
 
-/* ===== ENHANCEMENTS (STAGE 2) ===== */
-
-/* Accessibility: visually-hidden labels for screen readers */
-.sr-only{
-  position:absolute;
-  width:1px;height:1px;
-  padding:0;margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0;
-}
-
-/* Upload validation warnings */
-.warnings{
-  margin:8px 0;
-  padding:8px 10px;
-  border-radius:6px;
-  font-size:12px;
-  line-height:1.5;
-  background:#fffbeb;
-  color:#92400e;
-  border:1px solid #fde68a;
-}
-.warnings:empty{display:none;}
-
-/* Student-wise results table */
+/* ===== Student-wise results table ===== */
 .results-panel{
   margin-top:14px;
 }
@@ -279,12 +382,23 @@ button.enabled{
   border:1px solid #e5e7eb;
   border-radius:8px;
 }
+.table-scroll::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+.table-scroll::-webkit-scrollbar-thumb{
+  background:#c4b5fd;
+  border-radius:999px;
+}
+.table-scroll::-webkit-scrollbar-track{
+  background:transparent;
+}
 #resultsTable{
   width:100%;
   border-collapse:collapse;
   font-size:13px;
 }
-#resultsTable th, #resultsTable td{
+#resultsTable th,#resultsTable td{
   padding:8px 10px;
   text-align:left;
   border-bottom:1px solid #f1f5f9;
@@ -311,10 +425,8 @@ button.enabled{
 .sort-arrow.active{
   color:#5b3cc4;
 }
-/* Native search-input clear ("x") button should show a pointer, not
-   the text-input's caret cursor, since it's actually a button */
-input[type=search]::-webkit-search-cancel-button{
-  cursor:pointer;
+#resultsTable tbody tr{
+  transition:background-color .15s ease;
 }
 #resultsTable tbody tr:hover{
   background:#f9fafb;
@@ -334,13 +446,7 @@ input[type=search]::-webkit-search-cancel-button{
   font-size:13px;
 }
 
-/* Responsiveness */
-#hist{
-  max-width:100%;
-  height:auto;
-  display:block;
-  margin:0 auto;
-}
+/* ===== Small screens ===== */
 @media (max-width:760px){
   .controls{
     grid-template-columns:1fr;
@@ -359,128 +465,6 @@ input[type=search]::-webkit-search-cancel-button{
     justify-content:center;
   }
 }
-
-/* ===== VISUAL DESIGN PASS (STAGE 2) ===== */
-
-/* Header: icon + tighter alignment, clickable back to the home/start state */
-.home-link{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  text-decoration:none;
-  color:inherit;
-  cursor:pointer;
-  border-radius:8px;
-}
-.home-link:focus-visible{
-  outline:none;
-  box-shadow:0 0 0 3px rgba(91,60,196,.25);
-}
-.home-link:hover h1{
-  color:#4c2fa0;
-}
-.header-icon{
-  width:38px;
-  height:38px;
-  border-radius:10px;
-  background:linear-gradient(135deg,#5b3cc4,#8b5cf6);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-}
-
-/* Section labels for scannability */
-.panel-eyebrow{
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-  color:#8b7fc7;
-  margin-bottom:16px;
-  flex-shrink:0;
-}
-
-/* Let the shorter panel's content center in the stretched height instead
-   of leaving dead space, while keeping both panels the same overall size */
-.empty-state{flex:1;}
-#analyticsContent, #gradingContent{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  gap:12px;
-}
-
-/* Consistent, branded focus states (also improves keyboard accessibility) */
-input:focus, select:focus, button:focus-visible, #resultsTable th:focus-visible{
-  outline:none;
-  box-shadow:0 0 0 3px rgba(91,60,196,.25);
-}
-input, select{
-  transition:box-shadow .15s ease, border-color .15s ease;
-}
-input:hover, select:hover{
-  border-color:#a5a0c9;
-}
-
-/* Smoother button feedback */
-button:not(:disabled):hover{filter:brightness(1.07);}
-button:not(:disabled):active{transform:scale(.96);}
-button.secondary:not(:disabled):hover{background:#d8dbe0;}
-
-/* Gentle panel elevation on hover */
-.panel{transition:box-shadow .25s ease;}
-.panel:hover{box-shadow:0 8px 22px rgba(76,29,149,.10);}
-
-/* Grade cards: hover affordance to match the rest of the UI */
-.grade:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);}
-
-/* Status text reads as soft banners instead of bare colored text */
-.notice:empty{
-  display:none;
-}
-.notice:not(:empty){
-  background:#ecfdf5;
-  border:1px solid #a7f3d0;
-  padding:8px 12px;
-  border-radius:8px;
-}
-.error:not(:empty){
-  background:#fef2f2;
-  border:1px solid #fecaca;
-  padding:6px 10px;
-  border-radius:6px;
-}
-
-/* Empty states (shown before a file/course makes a panel meaningful) */
-.empty-state{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  gap:6px;
-  padding:32px 12px;
-  color:#9691b8;
-  font-size:13px;
-}
-/* The [hidden] attribute must always win over any component's own
-   display:flex/grid rule (author CSS otherwise beats the browser's
-   default [hidden]{display:none} at equal specificity) */
-[hidden]{
-  display:none !important;
-}
-.empty-state .empty-icon{
-  display:flex;
-  opacity:.5;
-}
-
-/* Results table: branded scrollbar + smoother row hover */
-.table-scroll::-webkit-scrollbar{width:8px;height:8px;}
-.table-scroll::-webkit-scrollbar-thumb{background:#c4b5fd;border-radius:999px;}
-.table-scroll::-webkit-scrollbar-track{background:transparent;}
-#resultsTable tbody tr{transition:background-color .15s ease;}
 </style>
 </head>
 
@@ -509,8 +493,7 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
   <select id="course" aria-label="Select course"><option value="">Select a course to begin</option></select>
 </div>
 
-<!-- Full-width so the expanded guidance text has room to read comfortably,
-     directly under the row it explains rather than squeezed into one column -->
+<!-- full width so it reads comfortably when expanded, under the row it explains -->
 <details class="file-guidance">
   <summary>Marks file format guidance</summary>
   <p>
@@ -536,7 +519,7 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
 <div id="welcome" class="notice" role="status" aria-live="polite"></div>
 
 <div class="workspace">
-  <!-- ANALYTICS -->
+  <!-- Analytics -->
   <div class="panel">
     <div class="panel-eyebrow">Analytics &amp; Distribution</div>
     <div class="empty-state" id="analyticsEmpty">
@@ -563,7 +546,7 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
     </div>
   </div>
 
-  <!-- GRADING -->
+  <!-- Grading -->
   <div class="panel">
     <div class="panel-eyebrow">Grade Configuration</div>
     <div class="empty-state" id="gradingEmpty">
@@ -600,7 +583,7 @@ button.secondary:not(:disabled):hover{background:#d8dbe0;}
   </div>
 </div>
 
-<!-- STUDENT-WISE RESULTS (STAGE 2 ENHANCEMENT) -->
+<!-- Student-wise results -->
 <div class="panel results-panel" id="resultsPanel" hidden>
   <div class="results-header">
     <h3>Student-wise Results</h3>
@@ -630,8 +613,7 @@ const DEFAULTS={
   "C":[40,49],"C-":[30,39],"D":[20,29],"E":[0,19]
 };
 
-/* Grade color coding (Stage 2 visual design pass) — reused across grade
-   cards, the grade-summary pills, and the results table. */
+// shared colour scale for the grade cards, summary pills and results table
 const GRADE_FG={A:"#15803d","A-":"#16a34a",B:"#0369a1","B-":"#0284c7",C:"#b45309","C-":"#d97706",D:"#c2410c",E:"#b91c1c"};
 const GRADE_BG={A:"#dcfce7","A-":"#dcfce7",B:"#e0f2fe","B-":"#e0f2fe",C:"#fef3c7","C-":"#fef3c7",D:"#ffedd5",E:"#fee2e2"};
 
@@ -725,15 +707,15 @@ file.onchange=e=>{
 
     uploadWarnings.innerText=warnings.length?warnings.join(" "):"";
 
-    // Clear stale options from any previous upload before repopulating.
+    // clear stale options from any previous upload before repopulating
     course.length=1;
-    // Only one option per course name, even when a course has many rows.
+    // one option per unique course name, even when a course has many rows
     const uniqueCourses=[...new Set(data.map(d=>d.Course))];
     uniqueCourses.forEach(c=>{
       course.add(new Option(c,c));
     });
 
-    // A new file invalidates whatever was previously on screen.
+    // a new file invalidates whatever was previously on screen
     course.value="";
     grades.innerHTML="";
     rangeError.innerText="";
@@ -853,7 +835,6 @@ function updateAll(){
   renderResultsTable();
 }
 
-/* ===== STUDENT-WISE RESULTS TABLE (STAGE 2 ENHANCEMENT) ===== */
 let sortState={key:"id",dir:1};
 
 function renderResultsTable(){
