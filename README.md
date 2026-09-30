@@ -16,6 +16,12 @@ All bugs below were found by exploring the app in a browser and reproduced/verif
 | 6 | Timer display sits frozen for a full second after page load instead of reflecting elapsed time immediately | Reloaded the page and inspected the timer text/arc right after load | `startTimer()` only updated the clock text/arc **inside** `setInterval(...)`, so nothing rendered until the first 1000ms tick fired | Extracted the update logic into `tickTimer()` and called it once immediately in `startTimer()` before starting the `setInterval` | Reloaded the page and read `timerText.innerText` immediately (no wait) → showed the correct live elapsed time instead of a static placeholder |
 | 7 | Grade-count badges (A/A-/B/…) "pulse" as if a range changed, purely from switching courses | Selected Course A, then switched to Course B (different mark distribution) without touching any range | `previousSummary` (used to detect a real change and trigger the pulse animation) was never reset when a new course was selected, so a different course's counts were compared against the old course's counts | Reset `previousSummary = {}` whenever a course is (re)selected, so the pulse only fires for changes made *while viewing the same course* | Selected Course A (captured badge counts), switched to Course B, and confirmed the counts differed only because of the course switch — with the fix, no spurious pulse state carries over |
 
+**Additional polish fix:** the Min/Max selects inside each grade card had zero spacing between them (and between the label and the dropdown) — they were visually touching. Switched `.min`/`.max` to a flex row with a gap, and added spacing between the two rows.
+
+## Test files
+
+[`testdata/`](testdata/) has a set of sample `.xlsx` files, each targeting a specific scenario (boundary grade values, a single student, zero-variance marks, a 150-row class, multiple courses in one file, missing columns, an empty file, non-numeric marks, and dirty/invalid data). See [`testdata/TESTING.md`](testdata/TESTING.md) for what each file exercises and what to expect.
+
 ## Stage 2 — Enhancements
 
 Chosen deliberately to solve gaps a real instructor would hit, not to add surface-level polish. The core upload → select course → configure ranges → download flow is unchanged.
